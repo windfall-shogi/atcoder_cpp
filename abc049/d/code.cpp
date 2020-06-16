@@ -55,8 +55,8 @@ namespace std
     public:
         size_t operator()(const std::pair<int, int> &x) const
         {
-            // この計算がとても遅い
-            return hash<int>()(x.first) ^ hash<int>()(x.second);
+            // hash<int>::operator()がとても遅い
+            return static_cast<int64_t>(x.first) * 2 * 100000 + x.second;
         }
     };
 } // namespace std
@@ -87,18 +87,18 @@ int main()
     }
 
     // unordered_mapの方がmapより速い
-    std::unordered_map<int64_t, int> counter;
+    std::unordered_map<std::pair<int, int>, int> counter;
     for (int i = 0; i < n; ++i)
     {
         const int index1 = u1.root(i), index2 = u2.root(i);
-        const auto p = static_cast<int64_t>(index1) * n + index2;
+        const auto p = std::make_pair(index1, index2);
         ++counter[p];
     }
 
     for (int i = 0; i < n; ++i)
     {
         const int index1 = u1.root(i), index2 = u2.root(i);
-        const auto p = static_cast<int64_t>(index1) * n + index2;
+        const auto p = std::make_pair(index1, index2);
 
         std::cout << counter[p];
         if (i == n - 1)

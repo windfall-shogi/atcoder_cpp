@@ -3,6 +3,8 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
+#include <queue>
 
 constexpr int32_t MOD = 1000000007;
 
@@ -93,4 +95,47 @@ int64_t COM(int n, int k)
     if (n < 0 || k < 0)
         return 0;
     return fac[n] * (finv[k] * finv[n - k] % MOD) % MOD;
+}
+
+struct Edge
+{
+    int to;
+    int cost;
+};
+
+// <最短距離, 頂点の番号>
+using Node = std::pair<int, int>;
+using Graph = std::vector<std::vector<Edge>>;
+
+constexpr int32_t INF = 1000000000;
+
+// ダイクストラ法でstartから各頂点までの最短距離を計算する
+std::vector<int> RunDijkstra(const Graph &graph, const int start)
+{
+    std::priority_queue<Node, std::vector<Node>, std::greater<Node>> queue;
+    std::vector<int> d(graph.size(), INF);
+    d[start] = 0;
+    queue.emplace(0, start);
+
+    while (!queue.empty())
+    {
+        const Node node = queue.top();
+        queue.pop();
+        const int node_index = node.second;
+        if (d[node_index] < node.first)
+        {
+            continue;
+        }
+
+        for (const auto &edge : graph[node_index])
+        {
+            if (d[edge.to] > d[node_index] + edge.cost)
+            {
+                d[edge.to] = d[node_index] + edge.cost;
+                queue.emplace(d[edge.to], edge.to);
+            }
+        }
+    }
+
+    return d;
 }

@@ -82,7 +82,8 @@ int main()
 
     std::sort(cities.begin(), cities.end());
     int ans = std::numeric_limits<int>::max();
-    while(std::next_permutation(cities.begin(), cities.end())){
+    do
+    {
         int sum = 0;
         for (int i = 1; i < r; ++i)
         {
@@ -93,7 +94,7 @@ int main()
         {
             ans = sum;
         }
-    }
+    } while (std::next_permutation(cities.begin(), cities.end()));
 
     std::cout << ans << std::endl;
     return 0;

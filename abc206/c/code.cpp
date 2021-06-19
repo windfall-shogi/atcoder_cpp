@@ -1,6 +1,5 @@
 #include <iostream>
 #include <unordered_map>
-#include <vector>
 
 int main()
 {
@@ -14,16 +13,11 @@ int main()
         table[a] += 1;
     }
 
-    std::vector<int> counts;
-    for (const auto e : table)
-    {
-        counts.emplace_back(e.second);
-    }
-
     int64_t total = 0;
     int consumed = 0;
-    for (const int c : counts)
+    for (const auto &e : table)
     {
+        const int c = e.second;
         const int k = n - consumed - c;
         total += static_cast<int64_t>(c) * k;
         consumed += c;

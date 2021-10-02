@@ -1,48 +1,32 @@
 #include <iostream>
 #include <string>
+#include <vector>
+#include <unordered_set>
 
-enum Direction
+bool search(const std::vector<int> &count, int i, const int goal)
 {
-    RIGHT,
-    UP,
-    LEFT,
-    DOWN,
-    SIZE
-};
-const Direction rot_l[SIZE] = {UP, LEFT, DOWN, RIGHT};
-const Direction rot_r[SIZE] = {DOWN, RIGHT, UP, LEFT};
-
-const int dx[SIZE] = {+1, 0, -1, 0};
-const int dy[SIZE] = {0, +1, 0, -1};
-
-bool search(const std::string &s, std::string::const_iterator it,
-            const int x, const int y, int x0, int y0, Direction d)
-{
-    for (; it != s.end(); ++it)
+    std::unordered_set<int> current, next;
+    current.insert(0);
+    for (; i < count.size(); i += 2)
     {
-        if (*it == 'F')
+        if (i == 0)
         {
-            x0 += dx[d];
-            y0 += dy[d];
+            next.insert(count[i]);
         }
         else
         {
-            ++it;
-
-            Direction tmp = rot_l[d];
-            bool result = search(s, it, x, y, x0, y0, tmp);
-            if (result)
+            for (const int n : current)
             {
-                return true;
+                next.insert(n + count[i]);
+                next.insert(n - count[i]);
             }
-
-            tmp = rot_r[d];
-            result = search(s, it, x, y, x0, y0, tmp);
-            return result;
         }
+        next.swap(current);
+        next.clear();
     }
 
-    return x == x0 && y == y0;
+    const auto it = current.find(goal);
+    return it != current.end();
 }
 
 int main()
@@ -52,7 +36,26 @@ int main()
     int x, y;
     std::cin >> x >> y;
 
-    const bool result = search(s, s.begin(), x, y, 0, 0, RIGHT);
+    std::vector<int> count;
+    int n = 0;
+    for (const auto c : s)
+    {
+        if (c == 'T')
+        {
+            count.emplace_back(n);
+            n = 0;
+        }
+        else
+        {
+            ++n;
+        }
+    }
+    if (n != 0)
+    {
+        count.emplace_back(n);
+    }
+
+    const bool result = search(count, 0, x) && search(count, 1, y);
     std::cout << (result ? "Yes" : "No") << std::endl;
     return 0;
 }

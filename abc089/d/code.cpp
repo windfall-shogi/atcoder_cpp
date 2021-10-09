@@ -1,24 +1,7 @@
 #include <iostream>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 #include <algorithm>
-
-namespace std
-{
-    template <>
-    class hash<std::pair<int, int>>
-    {
-    public:
-        size_t operator()(const std::pair<int, int> &x) const
-        {
-            // 10^9
-            constexpr int k = 1000000000;
-            // hash<int>::operator()がとても遅い
-            return static_cast<int64_t>(x.first) * k + x.second;
-        }
-    };
-} // namespace std
 
 int main()
 {

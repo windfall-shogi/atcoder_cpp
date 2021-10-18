@@ -2,71 +2,43 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
+#include <functional>
 
 int main()
 {
     int n;
     std::cin >> n;
-    std::vector<int> as(n);
+    std::vector<int64_t> as(n);
     for (int i = 0; i < n; ++i)
     {
         std::cin >> as[i];
     }
 
-    constexpr int DIGITS = 21;
-    std::vector<std::vector<int>> counter(DIGITS);
-    std::vector<int> buffer(n + 1);
-    buffer[n] = 0;
-    for (int d = 0; d < DIGITS; ++d)
-    {
-        std::transform(as.begin(), as.end(), buffer.begin(), [d](const int x)
-                       { return (x >> d) & 0x1; });
+    std::vector<int64_t> cum_sum(n + 1), cum_xor(n + 1);
+    cum_sum[0] = cum_xor[0] = 0;
+    std::partial_sum(as.begin(), as.end(), ++cum_sum.begin());
+    std::partial_sum(as.begin(), as.end(), ++cum_xor.begin(), std::bit_xor<int64_t>());
 
-        counter[d].resize(n + 1);
-        std::partial_sum(buffer.rbegin(), buffer.rend(), counter[d].rbegin());
-    }
-
-    int64_t ans = n;
-    for (int l = 0; l < n - 1; ++l)
+    int64_t ans = 0;
+    for (int l = 1; l <= n; ++l)
     {
-        for (int r = l + 1; r < n; ++r)
+        int ok = l, ng = n + 1;
+        while (ok + 1 != ng)
         {
-            bool flag = true;
-            for (int d = DIGITS - 1; d >= 0; --d)
+            const int mid = (ok + ng) / 2;
+
+            const auto s = cum_sum[mid] - cum_sum[l - 1];
+            const auto x = cum_xor[mid] ^ cum_xor[l - 1];
+            if (s == x)
             {
-                const int bits = counter[d][r + 1] - counter[d][l];
-                if (bits >= 2)
-                {
-                    flag = false;
-                    break;
-                }
+                ok = mid;
             }
-            if (!flag)
+            else
             {
-                break;
-            }
-
-            int carry = (counter[0][r + 1] - counter[0][l]) / 2;
-            for (int d = 1; d < DIGITS; ++d)
-            {
-                int bits = counter[d][r + 1] - counter[d][l];
-
-                int xor_result = bits % 2;
-                int add_result = (bits + carry) % 2;
-
-                if (add_result != xor_result)
-                {
-                    flag = false;
-                    break;
-                }
-
-                carry = (bits + carry) / 2;
-            }
-            if (flag)
-            {
-                ++ans;
+                ng = mid;
             }
         }
+        ans += ok - l + 1;
     }
 
     std::cout << ans << std::endl;

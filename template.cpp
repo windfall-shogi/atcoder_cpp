@@ -158,3 +158,24 @@ std::vector<int> RunDijkstra(const Graph &graph, const int start)
 
     return d;
 }
+
+/*
+範囲をスライドさせながら最小値を求める
+
+長さNの配列AとパラメータKが与えられたとき、
+A[i]の値をmin{A[i], ..., A[min(i+K, N-1)]}で置き換える
+*/
+template <typename Array>
+typename Array::value_type slide_min(Array &A, int K)
+{
+    const auto size = std::size(A);
+    while (K > 0)
+    {
+        const int d = (K + 1) / 2;
+        for (int i = 0; i + d < size; ++i)
+        {
+            A[i] = std::min(A[i], A[i + d]);
+        }
+        K -= d;
+    }
+}

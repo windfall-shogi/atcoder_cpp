@@ -1,6 +1,19 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <numeric>
+
+int find(std::vector<int> &parents, const int x)
+{
+    if (parents[x] == x)
+    {
+        return x;
+    }
+    else
+    {
+        return parents[x] = find(parents, parents[x]);
+    }
+}
 
 int main()
 {
@@ -13,31 +26,23 @@ int main()
         std::cin >> ts[i] >> xs[i];
     }
 
-    std::unordered_map<int, int64_t> m;
-
     constexpr int64_t n = 1LL << 20;
+    std::vector<int> parents(n);
+    std::vector<int64_t> value(n, -1);
+    std::iota(begin(parents), end(parents), 0);
+
     for (int i = 0; i < q; ++i)
     {
         int64_t h = xs[i] % n;
         if (ts[i] == 1)
         {
-            std::unordered_map<int, int64_t>::iterator it;
-            while (true)
-            {
-                it = m.find(h);
-                if (it == m.end())
-                {
-                    break;
-                }
-                ++h;
-                h %= n;
-            }
-            m[h] = xs[i];
+            h = find(parents, h);
+            value[h] = xs[i];
+            parents[h] = find(parents, (h + 1) % n);
         }
         else
         {
-            const auto it = m.find(h);
-            std::cout << (it == m.end() ? -1 : m[h]) << std::endl;
+            std::cout << value[h] << std::endl;
         }
     }
 

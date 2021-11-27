@@ -1,6 +1,11 @@
 #include <iostream>
 
-int64_t TABLE[1001][10001];
+constexpr int MAX_SIZE = 1001;
+int64_t A[MAX_SIZE][MAX_SIZE];
+int64_t SUM[MAX_SIZE][MAX_SIZE];
+int64_t BUF1[MAX_SIZE][MAX_SIZE];
+int64_t BUF2[MAX_SIZE][MAX_SIZE];
+int64_t M[MAX_SIZE][MAX_SIZE];
 
 int main()
 {
@@ -10,7 +15,7 @@ int main()
     {
         for (int j = 1; j <= W; ++j)
         {
-            std::cin >> TABLE[i][j];
+            std::cin >> A[i][j];
         }
     }
 
@@ -30,16 +35,59 @@ int main()
 
     for (int i = 1; i <= H; ++i)
     {
-        for (int j = 1; j < W; ++j)
+        for (int j = 1; j <= W; ++j)
         {
-            TABLE[i][j + 1] += TABLE[i][j];
+            SUM[i][j] = SUM[i][j - 1] + SUM[i - 1][j] - SUM[i - 1][j - 1] + A[i][j];
         }
     }
-    for (int j = 1; j <= W; ++j)
+
+    // SUMの方は右下の座標を基準にした方が綺麗に書ける
+    // BUFの方は左上を基準にする
+    for (int i = h1; i <= H; ++i)
     {
-        for (int i = 1; i < H; ++i)
+        for (int j = w1; j <= W; ++j)
         {
-            TABLE[i + 1][j] += TABLE[i][j];
+            BUF1[i - h1 + 1][j - w1 + 1] = SUM[i][j] + SUM[i - h1][j - w1] - SUM[i][j - w1] - SUM[i - h1][j];
+        }
+    }
+    for (int i = h2; i <= H; ++i)
+    {
+        for (int j = w2; j <= W; ++j)
+        {
+            BUF2[i - h2 + 1][j - w2 + 1] = SUM[i][j] + SUM[i - h2][j - w2] - SUM[i][j - w2] - SUM[i - h2][j];
+        }
+    }
+
+    for (int i = 1; i + h2 - 1 <= H; ++i)
+    {
+        for (int j = 1; j + w2 - 1 <= W; ++j)
+        {
+            M[i][j] = BUF2[i][j];
+        }
+
+        // 範囲をスライドさせながらmax
+        int K = w1 - w2;
+        while (K > 0)
+        {
+            const int d = (K + 1) / 2;
+            for (int j = 1; j + w2 - 1 + d <= W; ++j)
+            {
+                M[i][j] = std::max(M[i][j], M[i][j + d]);
+            }
+            K -= d;
+        }
+    }
+    for (int j = 1; j + w2 - 1 <= W; ++j)
+    {
+        int K = h1 - h2;
+        while (K > 0)
+        {
+            const int d = (K + 1) / 2;
+            for (int i = 1; i + h2 - 1 + d <= H; ++i)
+            {
+                M[i][j] = std::max(M[i][j], M[i + d][j]);
+            }
+            K -= d;
         }
     }
 
@@ -48,24 +96,7 @@ int main()
     {
         for (int j = 1; j + w1 - 1 <= W; ++j)
         {
-            const auto i1 = i - 1, j1 = j - 1;
-            const auto i2 = i + h1 - 1, j2 = j + w1 - 1;
-            const int64_t tmp1 = TABLE[i2][j2] + TABLE[i1][j1] - TABLE[i2][j1] - TABLE[i1][j2];
-
-            int64_t tmp_ans = 0;
-            for (int s = 1; s + h2 - 1 <= h1; ++s)
-            {
-                for (int t = 1; t + w2 - 1 <= w1; ++t)
-                {
-                    const auto s1 = s - 1 + i - 1, t1 = t - 1 + j - 1;
-                    const auto s2 = s + h2 - 1 + i - 1, t2 = t + w2 - 1 + j - 1;
-                    const int64_t tmp2 = TABLE[s2][t2] + TABLE[s1][t1] - TABLE[s2][t1] - TABLE[s1][t2];
-
-                    tmp_ans = std::max(tmp_ans, tmp2);
-                }
-            }
-
-            ans = std::max(ans, tmp1 - tmp_ans);
+            ans = std::max(ans, BUF1[i][j] - M[i][j]);
         }
     }
 

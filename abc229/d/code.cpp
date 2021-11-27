@@ -9,101 +9,30 @@ int main()
     std::cin >> S;
     std::cin >> K;
 
-    int count = 0;
-    std::vector<int64_t> buf(S.size());
+    const int n = static_cast<int>(S.size());
+    std::vector<int64_t> buf(S.size() + 1);
     for (int i = 0; i < S.size(); ++i)
     {
-        if (S[i] == 'X')
+        // 書き換え対象の.を数えた方がこの後の処理が簡単
+        if (S[i] == '.')
         {
-            ++count;
-        }
-        buf[i] = count;
-    }
-    if (S.size() - count <= K)
-    {
-        std::cout << S.size() << std::endl;
-        return 0;
-    }
-
-    int ans = 0;
-    int l = 0, r;
-    while (true)
-    {
-        r = l + K - 1;
-        while (r < S.size())
-        {
-            if (l == 0)
-            {
-
-                if (buf[r] + K > r + 1 || (r + 1 < S.size() && S[r + 1] == 'X'))
-                {
-                    ++r;
-                }
-                else
-                {
-                    break;
-                }
-            }
-            else
-            {
-                if (buf[r] - buf[l - 1] + K > r - l + 1 || (r + 1 < S.size() && S[r + 1] == 'X'))
-                {
-                    ++r;
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-        ans = std::max(ans, r - l + 1);
-
-        bool done = false;
-        if (S[l] == 'X')
-        {
-            while (true)
-            {
-                ++l;
-                if (buf.back() - buf[l - 1] + K == S.size() - l + 1)
-                {
-                    break;
-                }
-                if (l >= S.size())
-                {
-                    done = true;
-                    break;
-                }
-                if (S[l] != 'X')
-                {
-                    break;
-                }
-            }
+            buf[i + 1] = buf[i] + 1;
         }
         else
         {
-            while (true)
-            {
-                ++l;
-                if (buf.back() - buf[l - 1] + K == S.size() - l + 1)
-                {
-                    break;
-                }
-                if (l >= S.size())
-                {
-                    done = true;
-                    break;
-                }
-                if (S[l] == 'X')
-                {
-                    break;
-                }
-            }
+            buf[i + 1] = buf[i];
         }
+    }
 
-        if (done)
+    int ans = 0;
+    int r = 0;
+    for (int l = 0; l < n; ++l)
+    {
+        while (r <= n && buf[r] - buf[l] <= K)
         {
-            break;
+            ++r;
         }
+        ans = std::max(ans, r - l - 1);
     }
 
     std::cout << ans << std::endl;

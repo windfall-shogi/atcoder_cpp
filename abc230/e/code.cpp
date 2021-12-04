@@ -2,42 +2,32 @@
 #include <vector>
 #include <algorithm>
 
-std::vector<int64_t> divisor(const int64_t n)
-{
-    std::vector<int64_t> r;
-    for (int64_t i = 1; i * i <= n; ++i)
-    {
-        if (n % i == 0)
-        {
-            r.emplace_back(i);
-            if (i * i != n)
-            {
-                r.emplace_back(n / i);
-            }
-        }
-    }
-
-    std::sort(r.begin(), r.end());
-    return r;
-}
-
 int main()
 {
     int64_t N;
     std::cin >> N;
 
-    if (N == 1)
+    int64_t k;
+    for (int64_t i = 1; i <= N; ++i)
     {
-        std::cout << 1 << std::endl;
-        return 0;
+        if (i * i <= N)
+        {
+            k = i;
+        }
+        else
+        {
+            break;
+        }
     }
 
-    const std::vector<int64_t> d = divisor(N);
-    int64_t ans = N;
-    for (int64_t i = 1; i < static_cast<int64_t>(d.size()); ++i)
+    int64_t ans = 0;
+    for (int64_t i = 1; i <= k; ++i)
     {
-        const int64_t k = N / d[i];
-        ans += k * (d[i] - d[i - 1]);
+        ans += N / i;
+    }
+    for (int64_t i = 1; i <= N / (k + 1); ++i)
+    {
+        ans += i * (N / i - N / (i + 1));
     }
 
     std::cout << ans << std::endl;

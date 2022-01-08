@@ -32,27 +32,7 @@ int64_t COM(int n, int k)
 }
 
 int64_t count[26];
-int64_t cum[26];
-
-int64_t solve(const int64_t size, const int64_t index)
-{
-    if (index == 26 || size == 0)
-    {
-        return 1;
-    }
-
-    int64_t ans = 0;
-    for (int64_t i = std::max<int64_t>(0, size - cum[index]); i <= std::min(count[index], size); ++i)
-    {
-        int64_t tmp = COM(size, i);
-        tmp *= solve(size - i, index + 1);
-        tmp %= MOD;
-
-        ans += tmp;
-        ans %= MOD;
-    }
-    return ans;
-}
+int64_t dp[27][MAX];
 
 int main()
 {
@@ -64,16 +44,24 @@ int main()
     {
         ++count[c - 'a'];
     }
-    cum[25] = 0;
-    for (int i = 24; i >= 0; --i)
+
+    dp[0][0] = 1;
+    for (int i = 0; i < 26; ++i)
     {
-        cum[i] = cum[i + 1] + count[i + 1];
+        for (int64_t j = 0; j <= S.size(); ++j)
+        {
+            for (int k = 0; k <= std::min(j, count[i]); ++k)
+            {
+                dp[i + 1][j] += dp[i][j - k] * COM(j, k);
+                dp[i + 1][j] %= MOD;
+            }
+        }
     }
 
     int64_t ans = 0;
     for (int64_t i = 1; i <= S.size(); ++i)
     {
-        ans += solve(i, 0);
+        ans += dp[26][i];
         ans %= MOD;
     }
 

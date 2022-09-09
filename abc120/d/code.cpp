@@ -77,45 +77,29 @@ int main()
         --b;
         bridges[i] = std::make_pair(a, b);
     }
-    std::vector<int64_t> ans(m);
+    std::vector<int64_t> ans(m + 1);
+    ans.back() = static_cast<int64_t>(n) * (n - 1) / 2;
 
     UnionFind uf(n);
-    std::unordered_map<int, int> groups;
-    for (int i = 0; i < n; ++i)
-    {
-        groups[i] = 1;
-    }
-
     for (int i = m - 1; i >= 0; --i)
     {
-        int64_t r = 0;
-        for (const auto &e : groups)
-        {
-            r += e.second * (n - e.second);
-        }
-        r /= 2;
-        ans[i] = r;
-
         const auto &p = bridges[i];
         if (!uf.same(p.first, p.second))
         {
-            int root_a = uf.root(p.first);
-            int root_b = uf.root(p.second);
+            const int root_a = uf.root(p.first);
+            const int root_b = uf.root(p.second);
+
+            const int size_a = uf.getCount(p.first);
+            const int size_b = uf.getCount(p.second);
             uf.unite(p.first, p.second);
-            if (uf.root(p.second) != root_a)
-            {
-                groups[root_b] += groups[root_a];
-                groups.erase(root_a);
-            }
-            else
-            {
-                groups[root_a] += groups[root_b];
-                groups.erase(root_b);
-            }
+
+            ans[i] = ans[i + 1] - static_cast<int64_t>(size_a) * size_b;
+        }else{
+            ans[i] = ans[i + 1];
         }
     }
 
-    for (int i = 0; i < m; ++i)
+    for (int i = 1; i <= m; ++i)
     {
         std::cout << ans[i] << std::endl;
     }

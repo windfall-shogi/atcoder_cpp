@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <algorithm>
 
 int main()
 {
@@ -20,22 +21,62 @@ int main()
         std::cin >> cs[i];
     }
 
-    std::priority_queue<int64_t> q;
+    std::vector<int64_t> buffer1;
+    buffer1.reserve(x * y);
     for (const auto a : as)
     {
         for (const auto b : bs)
         {
-            for (const auto c : cs)
+            buffer1.emplace_back(a + b);
+        }
+    }
+    std::sort(buffer1.rbegin(), buffer1.rend());
+    std::sort(cs.rbegin(), cs.rend());
+
+    std::priority_queue<int64_t> q;
+    for (const auto c : cs)
+    {
+        if (q.size() >= k)
+        {
+            const auto current_min = -q.top();
+            if (c + buffer1[0] <= current_min)
             {
-                q.push(a + b + c);
+                break;
+            }
+        }
+
+        for (int64_t i = 0; i < std::min<int64_t>(k, buffer1.size()); ++i)
+        {
+            if (q.size() >= k)
+            {
+                const auto current_min = -q.top();
+                const auto v = c + buffer1[i];
+                if (v <= current_min)
+                {
+                    break;
+                }
+
+                q.pop();
+                q.push(-v);
+            }
+            else
+            {
+                q.push(-(c + buffer1[i]));
             }
         }
     }
 
-    for (int64_t i = 0; i < k; ++i)
+    std::vector<int64_t> buffer2;
+    buffer2.reserve(q.size());
+    while (!q.empty())
     {
-        std::cout << q.top() << std::endl;
+        buffer2.emplace_back(-q.top());
         q.pop();
+    }
+
+    for (std::vector<int64_t>::const_reverse_iterator it = buffer2.rbegin(); it != buffer2.rend(); ++it)
+    {
+        std::cout << *it << std::endl;
     }
 
     return 0;

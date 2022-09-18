@@ -2,6 +2,39 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
+#include <queue>
+#include <functional>
+
+struct Stop
+{
+    int64_t x, t;
+
+    Stop() = default;
+    Stop(const int64_t x2, const int64_t t2) : x(x2), t(t2) {}
+
+    bool operator<(const Stop &rhs) const
+    {
+        if (x == rhs.x)
+        {
+            return t < rhs.t;
+        }
+        else
+        {
+            return x < rhs.x;
+        }
+    }
+    bool operator>(const Stop &rhs) const
+    {
+        if (x == rhs.x)
+        {
+            return t > rhs.t;
+        }
+        else
+        {
+            return x > rhs.x;
+        }
+    }
+};
 
 int main()
 {
@@ -18,34 +51,41 @@ int main()
         std::cin >> ds[i];
     }
 
-    std::vector<int64_t> ans(q, -1);
+    std::vector<std::pair<int64_t, Stop>> spans(n);
     for (int i = 0; i < n; ++i)
     {
         int64_t s = ss[i], t = ts[i], x = xs[i];
         s -= x;
         t -= x;
 
-        const auto it1 = std::lower_bound(ds.begin(), ds.end(), s);
-        const auto it2 = std::lower_bound(it1, ds.end(), t);
+        spans[i] = std::make_pair(s, Stop{x, t});
+    }
+    std::sort(spans.begin(), spans.end());
 
-        const auto j = std::distance(ds.begin(), it1);
-        const auto k = std::distance(ds.begin(), it2);
-        for (auto m = j; m < k; ++m)
+    std::priority_queue<Stop, std::vector<Stop>, std::greater<Stop>> queue;
+    auto it = spans.begin();
+    for (const auto d : ds)
+    {
+        while (it != spans.end() && it->first <= d)
         {
-            if (ans[m] == -1)
-            {
-                ans[m] = x;
-            }
-            else if (x < ans[m])
-            {
-                ans[m] = x;
-            }
+            queue.push(it->second);
+            ++it;
+        }
+
+        while (!queue.empty() && queue.top().t <= d)
+        {
+            queue.pop();
+        }
+
+        if (queue.empty())
+        {
+            std::cout << -1 << std::endl;
+        }
+        else
+        {
+            std::cout << queue.top().x << std::endl;
         }
     }
 
-    for (const auto v : ans)
-    {
-        std::cout << v << std::endl;
-    }
     return 0;
 }

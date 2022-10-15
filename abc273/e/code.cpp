@@ -1,158 +1,73 @@
 #include <iostream>
-#include <stack>
-#include <unordered_map>
 #include <string>
-#include <unordered_set>
-#include <utility>
 #include <vector>
+#include <memory>
+#include <unordered_map>
 
-struct Query
+struct Node
 {
-    enum Type
-    {
-        ADD,
-        DELETE,
-        SAVE,
-        LOAD
-    };
+    int value;
+    std::weak_ptr<Node> parent;
+    std::vector<std::shared_ptr<Node>> children;
 
-    Type type;
-    int index;
-    int count;
+    Node() : value(-1) {}
+    Node(const int v, std::shared_ptr<Node> &node) : value(v), parent(node) {}
 };
 
 int main()
 {
     int q;
     std::cin >> q;
-    std::stack<int32_t> as;
-    std::unordered_map<int32_t, std::stack<int32_t>> note;
-    std::vector<Query> queries(q);
+    std::shared_ptr<Node> root = std::make_shared<Node>();
+    std::shared_ptr<Node> current = root;
+    std::unordered_map<int, std::shared_ptr<Node>> note;
     for (int i = 0; i < q; ++i)
     {
         std::string query;
         std::cin >> query;
-        if (query == "DELETE")
+        if (query == "ADD")
         {
-            queries[i] = Query{Query::DELETE, -1, -1};
+            int x;
+            std::cin >> x;
+            auto next = std::make_shared<Node>(x, current);
+            current->children.emplace_back(next);
+            current = next;
+        }
+        else if (query == "DELETE")
+        {
+            if (std::shared_ptr<Node> tmp = current->parent.lock())
+            {
+                current = tmp;
+            }
+        }
+        else if (query == "SAVE")
+        {
+            int y;
+            std::cin >> y;
+            note[y] = current;
         }
         else
         {
-            int32_t v;
-            std::cin >> v;
-            if (query == "ADD")
+            int32_t z;
+            std::cin >> z;
+            if (note.count(z) == 0)
             {
-                queries[i] = Query{Query::ADD, v, -1};
-            }
-            else if (query == "SAVE")
-            {
-                queries[i] = Query{Query::SAVE, v, -1};
+                current = root;
             }
             else
             {
-                queries[i] = Query{Query::LOAD, v, -1};
+                current = note[z];
             }
         }
-    }
-    std::unordered_set<int> need_to_save;
-    std::unordered_map<int, int> load_count;
-    for (int i = q - 1; i >= 0; --i)
-    {
-        if (queries[i].type == Query::LOAD)
-        {
-            need_to_save.emplace(queries[i].index);
-            ++load_count[queries[i].index];
-        }
-        else if (queries[i].type == Query::SAVE)
-        {
-            if (need_to_save.count(queries[i].index) == 0)
-            {
-                queries[i].index = -1;
-            }
-            else
-            {
-                queries[i].count = load_count[queries[i].index];
-                load_count.erase(queries[i].index);
-                need_to_save.erase(queries[i].index);
-            }
-        }
-    }
 
-    load_count.clear();
-    for (int i = 0; i < q; ++i)
-    {
-        const Query::Type query = queries[i].type;
-        const int32_t v = queries[i].index;
-        if (query == Query::ADD)
-        {
-            as.emplace(v);
-            std::cout << v;
-        }
-        else if (query == Query::DELETE)
-        {
-            if (!as.empty())
-            {
-                as.pop();
-            }
-
-            if (as.empty())
-            {
-                std::cout << -1;
-            }
-            else
-            {
-                std::cout << as.top();
-            }
-        }
-        else if (query == Query::SAVE)
-        {
-            if (v != -1)
-            {
-                note[v] = as;
-                load_count[v] = queries[i].count;
-            }
-
-            if (as.empty())
-            {
-                std::cout << -1;
-            }
-            else
-            {
-                std::cout << as.top();
-            }
-        }
-        else
-        {
-            if (note.count(v) == 0)
-            {
-                as = std::stack<int>();
-            }
-            else
-            {
-                as = note[v];
-                --load_count[v];
-                if (load_count[v] == 0)
-                {
-                    note.erase(v);
-                    load_count.erase(v);
-                }
-            }
-            if (as.empty())
-            {
-                std::cout << -1;
-            }
-            else
-            {
-                std::cout << as.top();
-            }
-        }
-        if (i != q - 1)
-        {
-            std::cout << ' ';
-        }
-        else
+        std::cout << current->value;
+        if (i == q - 1)
         {
             std::cout << std::endl;
+        }
+        else
+        {
+            std::cout << ' ';
         }
     }
 
